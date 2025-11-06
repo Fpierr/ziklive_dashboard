@@ -5,7 +5,7 @@ import { Eye, EyeOff } from "lucide-react";
 import FormInput from "@/components/form_input";
 import { useAuth } from "@/context/auth_context";
 import { useRouter } from "next/navigation";
-import { FcGoogle } from "react-icons/fc"; // pour l’icône Google
+import { FcGoogle } from "react-icons/fc";
 import { CardDescription, CardTitle } from "@/components/ui/card";
 
 export default function LoginPage() {
@@ -51,8 +51,12 @@ export default function LoginPage() {
     try {
       await login(form.email, form.password);
       router.push("/profile");
-    } catch (err: any) {
-      setError(err.message || "Login failed");
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("Login failed. Please try again.");
+      }
     } finally {
       setLoading(false);
     }

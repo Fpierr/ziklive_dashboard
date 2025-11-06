@@ -23,7 +23,8 @@ export default function SignupPage() {
   const [isPasswordValid, setIsPasswordValid] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const validateEmail = (email: string) => /^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email);
+  const validateEmail = (email: string) =>
+    /^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -34,7 +35,9 @@ export default function SignupPage() {
     }
 
     if (name === "fullName") {
-      setFullNameError(value.trim().length < 3 ? "Please enter a valid full name." : "");
+      setFullNameError(
+        value.trim().length < 3 ? "Please enter a valid full name." : ""
+      );
     }
   };
 
@@ -67,16 +70,29 @@ export default function SignupPage() {
     try {
       await signupUser(form.fullName.trim(), form.email.trim(), form.password);
       router.push("/login");
-    } catch (err: any) {
-      setError(err.message || "Signup failed");
+    } catch (err: unknown) {
+      let message = "Signup failed. Please try again.";
+
+      if (err instanceof Error) {
+        const lower = err.message.toLowerCase();
+
+        if (lower.includes("exists") || lower.includes("already")) {
+          message = "An account with this email already exists.";
+        } else if (lower.includes("network")) {
+          message = "Network error. Please check your connection.";
+        } else {
+          message = err.message;
+        }
+      }
+
+      setError(message);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div 
-      className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
+    <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
       <form
         onSubmit={handleSubmit}
         className="bg-white dark:bg-gray-800 shadow-md rounded px-8 py-6 w-full max-w-sm z-10 overflow-auto"
@@ -86,7 +102,7 @@ export default function SignupPage() {
         </h2>
 
         {error && (
-          <p className="text-red-500 text-xs mb-4 text-center">{error}</p>
+          <p className="text-red-500 text-sm mb-4 text-center">{error}</p>
         )}
 
         <TextField
@@ -134,10 +150,9 @@ export default function SignupPage() {
           </a>
         </p>
 
-        {/* politic privacy */}
         <p className="text-center text-xs text-gray-500 dark:text-gray-400 pt-8">
           By clicking continue, you agree to our{" "}
-          <a href="/terms" className="text-pink-600 hover:underline ">
+          <a href="/terms" className="text-pink-600 hover:underline">
             Terms of Service
           </a>{" "}
           and{" "}
