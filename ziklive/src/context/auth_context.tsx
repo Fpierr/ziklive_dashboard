@@ -33,8 +33,14 @@ const AuthContext = createContext<AuthContextType>({
 async function fetchMe(): Promise<{ user: User | null }> {
   try {
     return await fetchEndpoints.fetchCurrentUser();
-  } catch (error: any) {
-    if (error.response?.status === 401) {
+  } catch (error: unknown) {
+    // Vérification stricte de type
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "response" in error &&
+      (error as any).response?.status === 401
+    ) {
       await refreshAccessToken();
       return await fetchEndpoints.fetchCurrentUser();
     }
@@ -64,11 +70,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (email: string, password: string) => {
     setLoading(true);
     try {
-      const { user: loggedUser } = await fetchEndpoints.loginUser(email, password);
+      const { user: loggedUser } = await fetchEndpoints.loginUser(
+        email,
+        password
+      );
       setUser(loggedUser);
       setError(null);
-    } catch (err: any) {
-      setError(err.message || "Login failed");
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message || "Login failed");
+      } else {
+        setError("Login failed");
+      }
       setUser(null);
       throw err;
     } finally {
@@ -83,8 +96,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(null);
       setError(null);
       router.push("/login");
-    } catch (err: any) {
-      setError(err.message || "Logout failed");
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message || "Logout failed");
+      } else {
+        setError("Logout failed");
+      }
     } finally {
       setLoading(false);
     }
