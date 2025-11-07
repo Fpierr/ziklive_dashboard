@@ -1,6 +1,4 @@
-//
 // --- ARTIST ------------------------------
-//
 
 export interface Artist {
   id: string | number;
@@ -8,11 +6,8 @@ export interface Artist {
   //profile_image?: string;
 }
 
-//
-// --- EVENT -------------------------------------
-//
 
-// Ce qu’on envoie dans le formulaire (POST/PUT)
+// --- EVENT -------------------------------------
 export interface EventInput {
   title: string;
   description?: string;
@@ -21,7 +16,6 @@ export interface EventInput {
   artist_id: string | number;
 }
 
-// Ce qu’on reçoit depuis l’API (GET)
 export interface EventOutput {
   id: string | number;
   title: string;
@@ -32,10 +26,8 @@ export interface EventOutput {
   created_by?: string | number;
 }
 
-//
-// --- TICKET TYPE --------------------------
-//
 
+// --- TICKET TYPE --------------------------
 export interface TicketType {
   id?: string;
   event: string;

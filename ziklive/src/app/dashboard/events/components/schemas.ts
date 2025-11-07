@@ -1,8 +1,7 @@
 import { z } from "zod";
 
-//
+
 // -------FORMULAIRE --------------
-//
 
 export const eventInputSchema = z.object({
   title: z.string().min(3, "Titre requis"),
@@ -20,9 +19,7 @@ export const eventInputSchema = z.object({
 });
 
 
-//
 // ----- ARTIST --------------
-//
 
 export const artistSchema = z.object({
   id: z.union([z.string(), z.number()]),
@@ -32,14 +29,12 @@ export const artistSchema = z.object({
 });
 
 
-//
 // ---- API RESPONSE (Lecture depuis le back) ----------
-//
 
 export const eventOutputSchema = z.object({
   id: z.union([z.string(), z.number()]),
   title: z.string(),
-  description: z.string().nullable().optional(),  // nullable() accepte null
+  description: z.string().nullable().optional(),
   date: z.string(),
   location: z.string().nullable().optional(),
   artist: artistSchema,
@@ -50,9 +45,7 @@ export const eventOutputSchema = z.object({
 export const eventListSchema = z.array(eventOutputSchema);
 
 
-//
 // ---- TICKET TYPES --------------
-//
 
 export const ticketTypeSchema = z.object({
   name: z.string().min(2, "Nom requis"),

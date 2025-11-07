@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import api from "@/lib/apiPublic";
 import { BadgeCheck } from "lucide-react";
+import Image from "next/image";
 
 import {
   Tooltip,
@@ -27,20 +28,25 @@ export default function ArtistsPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    api
-      .get("/artists/")
-      .then((res) => {
+    const fetchArtists = async () => {
+      try {
+        const res = await api.get("/artists/");
         setArtists(res.data);
-        setLoading(false);
-      })
-      .catch((err) => {
+      } catch {
         setError("Échec du chargement des artistes.");
+      } finally {
         setLoading(false);
-      });
+      }
+    };
+
+    fetchArtists();
   }, []);
 
-  if (loading) return <p className="text-center mt-10">Chargement des artistes...</p>;
-  if (error) return <p className="text-center mt-10 text-red-500">{error}</p>;
+  if (loading)
+    return <p className="text-center mt-10">Chargement des artistes...</p>;
+
+  if (error)
+    return <p className="text-center mt-10 text-red-500">{error}</p>;
 
   return (
     <div className="min-h-screen bg-background text-foreground px-6 py-10">
@@ -56,12 +62,15 @@ export default function ArtistsPage() {
               className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow hover:shadow-xl transition"
             >
               {artist.profile_image_url && (
-                <img
+                <Image
                   src={artist.profile_image_url}
                   alt={artist.name}
+                  width={400}
+                  height={200}
                   className="w-full h-40 object-cover rounded-md mb-4"
                 />
               )}
+
               <div className="flex items-center gap-2 mb-2">
                 <h2 className="text-xl font-bold">{artist.name}</h2>
                 {artist.email_verified && (
@@ -77,7 +86,10 @@ export default function ArtistsPage() {
                   </TooltipProvider>
                 )}
               </div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">{artist.bio}</p>
+
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                {artist.bio}
+              </p>
             </div>
           ))}
         </div>

@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import api from "@/lib/api";
+import Modal from "@/components/modal";
+import toast from "react-hot-toast";
 
 interface TicketType {
   id: string;
@@ -21,31 +23,51 @@ export default function TicketTypeList({ eventId }: Props) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchTickets = async () => {
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [ticketToDelete, setTicketToDelete] = useState<TicketType | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  const fetchTickets = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
-      const res = await api.get(`/tickets/manage-types/?event=${eventId}`);
+      const res = await api.get<TicketType[]>(`/tickets/manage-types/?event=${eventId}`);
       setTickets(res.data);
-    } catch (err) {
+    } catch {
       setError("Erreur lors du chargement des tickets.");
     } finally {
       setLoading(false);
     }
+  }, [eventId]);
+
+  useEffect(() => {
+    void fetchTickets();
+  }, [fetchTickets]);
+
+  const openDeleteModal = (ticket: TicketType) => {
+    setTicketToDelete(ticket);
+    setDeleteModalOpen(true);
   };
 
-  const handleDelete = async (ticketId: string) => {
-    if (!confirm("Supprimer ce ticket ?")) return;
+  const confirmDelete = async () => {
+    if (!ticketToDelete) return;
+    setDeleting(true);
     try {
-      await api.delete(`/tickets/manage-types/${ticketId}/`);
-      fetchTickets();
-    } catch (err) {
-      alert("Échec de suppression.");
+      await api.delete(`/tickets/manage-types/${ticketToDelete.id}/`);
+      setDeleteModalOpen(false);
+      setTicketToDelete(null);
+      await fetchTickets();
+    } catch {
+      toast.error("Échec de suppression du ticket.");
+    } finally {
+      setDeleting(false);
     }
   };
 
-  useEffect(() => {
-    fetchTickets();
-  }, [eventId]);
+  const handleEdit = (ticket: TicketType) => {
+    // TO IMPLEMENT EDIT TICKETS
+    toast("En cours de construction !");
+  };
 
   return (
     <div className="mt-2 mb-6 px-4 py-3 bg-gray-50 border rounded shadow-sm">
@@ -75,18 +97,20 @@ export default function TicketTypeList({ eventId }: Props) {
                 <td className="p-2">{ticket.name}</td>
                 <td className="p-2">{ticket.price} €</td>
                 <td className="p-2">{ticket.quantity}</td>
-                <td className="p-2">{ticket.sale_starts?.slice(0, 16).replace("T", " ")}</td>
-                <td className="p-2">{ticket.sale_ends?.slice(0, 16).replace("T", " ")}</td>
+                <td className="p-2">{ticket.sale_starts.slice(0, 16).replace("T", " ")}</td>
+                <td className="p-2">{ticket.sale_ends.slice(0, 16).replace("T", " ")}</td>
                 <td className="p-2 text-right space-x-2">
                   <button
+                    type="button"
                     className="text-blue-600 hover:underline text-xs"
-                    onClick={() => alert("TODO: implémenter modification")}
+                    onClick={() => handleEdit(ticket)}
                   >
                     Modifier
                   </button>
                   <button
+                    type="button"
                     className="text-red-600 hover:underline text-xs"
-                    onClick={() => handleDelete(ticket.id)}
+                    onClick={() => openDeleteModal(ticket)}
                   >
                     Supprimer
                   </button>
@@ -96,6 +120,32 @@ export default function TicketTypeList({ eventId }: Props) {
           </tbody>
         </table>
       )}
+
+      {/* Modal de confirmation suppression */}
+      <Modal open={deleteModalOpen} onClose={() => setDeleteModalOpen(false)}>
+        <div className="p-4">
+          <h2 className="text-lg font-semibold mb-2">Confirmer la suppression</h2>
+          <p>Voulez-vous vraiment supprimer le ticket &quot;{ticketToDelete?.name}&quot; ?</p>
+          <div className="mt-4 flex justify-end gap-2">
+            <button
+              type="button"
+              className="px-4 py-2 border rounded"
+              onClick={() => setDeleteModalOpen(false)}
+              disabled={deleting}
+            >
+              Annuler
+            </button>
+            <button
+              type="button"
+              className="px-4 py-2 bg-red-600 text-white rounded"
+              onClick={confirmDelete}
+              disabled={deleting}
+            >
+              {deleting ? "Suppression..." : "Supprimer"}
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

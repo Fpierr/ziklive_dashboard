@@ -5,7 +5,6 @@ import api from "@/lib/api";
 import { useAuth } from "@/context/auth_context";
 import { Check } from "lucide-react";
 
-
 interface Artist {
   id: number | string;
   name: string;
@@ -19,14 +18,20 @@ export default function ArtistListPage() {
   const { user } = useAuth();
 
   useEffect(() => {
-    api.get("/artists/")
-      .then(res => {
+    let isMounted = true;
+    api
+      .get("/artists/")
+      .then((res) => {
         const data = Array.isArray(res.data) ? res.data : res.data.results;
-        setArtists(data || []);
+        if (isMounted) setArtists(data || []);
       })
-      .catch(err => {
+      .catch((err) => {
         console.error("Erreur chargement artistes:", err);
       });
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   return (
@@ -46,15 +51,11 @@ export default function ArtistListPage() {
             {artists.map((artist) => (
               <tr key={artist.id} className="border-t">
                 <td className="p-2 border font-medium">{artist.name}</td>
-                <td className="p-2 border">{artist.email || "-"}</td>
-                <td className="p-2 border">{artist.bio || "-"}</td>
+                <td className="p-2 border">{artist.email ?? "-"}</td>
+                <td className="p-2 border">{artist.bio ?? "-"}</td>
                 <td className="p-2 border text-center">
-                  {artist.created_by === user?.id ? (
+                  {artist.created_by === user?.id && (
                     <Check size={18} className="inline text-green-600" />
-                  ) : (
-                    ""
-
-                    // <span className="text-green-600 font-semibold">✓ Moi</span>
                   )}
                 </td>
               </tr>

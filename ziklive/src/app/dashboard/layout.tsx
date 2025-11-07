@@ -6,7 +6,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LayoutDashboard, PlusCircle, Ticket, Headphones, MicVocal } from "lucide-react";
 
-
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
@@ -22,28 +21,33 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       <div className="min-h-screen flex bg-gray-100 w-full">
         {/* Sidebar */}
         <aside className="w-64 bg-white shadow-md p-4 space-y-6">
-
           <h1 className="text-xl font-bold text-purple-700">ZikLive Pro</h1>
           <nav className="space-y-2 text-sm">
-
-            <Link href="/dashboard" >
-              <div className={navLink("/dashboard")} >
-              <LayoutDashboard size={18} /> Tableau de bord
+            <Link href="/dashboard">
+              <div className={navLink("/dashboard")}>
+                <LayoutDashboard size={18} /> Tableau de bord
               </div>
             </Link>
-            <Link href="/dashboard/events" className={navLink("/dashboard/events")}>
-              <MicVocal size={18} /> Mes événements
+            <Link href="/dashboard/events">
+              <div className={navLink("/dashboard/events")}>
+                <MicVocal size={18} /> Mes événements
+              </div>
             </Link>
-            <Link href="/dashboard/events/create" className={navLink("/dashboard/events/create")}>
-              <PlusCircle size={18} /> Créer un événement
+            <Link href="/dashboard/events/create">
+              <div className={navLink("/dashboard/events/create")}>
+                <PlusCircle size={18} /> Créer un événement
+              </div>
             </Link>
-            <Link href="/dashboard/tickets" className={navLink("/dashboard/tickets")}>
-              <Ticket size={18} /> Tickets vendus
+            <Link href="/dashboard/tickets">
+              <div className={navLink("/dashboard/tickets")}>
+                <Ticket size={18} /> Tickets vendus
+              </div>
             </Link>
-            <Link href="/dashboard/artists" className={navLink("/dashboard/artists")}>
-              <MicVocal size={18} /> Artistes
+            <Link href="/dashboard/artists">
+              <div className={navLink("/dashboard/artists")}>
+                <MicVocal size={18} /> Artistes
+              </div>
             </Link>
-
           </nav>
         </aside>
 
@@ -70,6 +74,7 @@ function UserHeader() {
         Bienvenue, {user?.name || "Promoteur"}
       </div>
       <button
+        type="button"
         onClick={logout}
         className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
       >
@@ -78,4 +83,3 @@ function UserHeader() {
     </div>
   );
 }
-

@@ -20,15 +20,15 @@ export default function TicketTypeForm({ eventId, onSuccess }: Props) {
     resolver: zodResolver(ticketTypeSchema),
   });
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: z.infer<typeof ticketTypeSchema>) => {
     try {
       await axios.post("/tickets/manage-types/", {
         ...data,
         event: eventId,
       });
       onSuccess?.();
-    } catch (err) {
-      console.error("Erreur création ticket", err);
+    } catch (error) {
+      console.error("Erreur création ticket", error);
     }
   };
 
@@ -37,19 +37,19 @@ export default function TicketTypeForm({ eventId, onSuccess }: Props) {
       <div>
         <label>Nom du ticket</label>
         <input {...register("name")} className="input" />
-        <p className="text-red-500 text-sm">{errors.name?.message}</p>
+        {errors.name && <p className="text-red-500 text-sm">{errors.name.message}</p>}
       </div>
 
       <div>
         <label>Prix (€)</label>
         <input type="number" {...register("price", { valueAsNumber: true })} className="input" />
-        <p className="text-red-500 text-sm">{errors.price?.message}</p>
+        {errors.price && <p className="text-red-500 text-sm">{errors.price.message}</p>}
       </div>
 
       <div>
         <label>Quantité</label>
         <input type="number" {...register("quantity", { valueAsNumber: true })} className="input" />
-        <p className="text-red-500 text-sm">{errors.quantity?.message}</p>
+        {errors.quantity && <p className="text-red-500 text-sm">{errors.quantity.message}</p>}
       </div>
 
       <div>
@@ -62,7 +62,9 @@ export default function TicketTypeForm({ eventId, onSuccess }: Props) {
         <input type="datetime-local" {...register("sale_ends")} className="input" />
       </div>
 
-      <button type="submit" className="btn-primary">Ajouter</button>
+      <button type="submit" className="btn-primary">
+        Ajouter
+      </button>
     </form>
   );
 }

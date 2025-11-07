@@ -32,7 +32,6 @@ export default function EventForm({ onSuccess }: { onSuccess?: () => void }) {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [selectedCity, setSelectedCity] = useState<City | null>(null);
 
-  // Surveille le champ banner (pour debug ou prévisualisation si tu veux)
   const bannerFile = watch("banner");
 
   useEffect(() => {
@@ -51,7 +50,6 @@ export default function EventForm({ onSuccess }: { onSuccess?: () => void }) {
           : Array.isArray(data.results)
           ? data.results
           : [];
-
         setFilteredArtists(artists);
       } catch {
         setFilteredArtists([]);
@@ -59,16 +57,14 @@ export default function EventForm({ onSuccess }: { onSuccess?: () => void }) {
         setLoading(false);
       }
     };
+
     const timer = setTimeout(fetchArtists, 300);
     return () => clearTimeout(timer);
   }, [query]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setShowDropdown(false);
       }
     };
@@ -76,30 +72,29 @@ export default function EventForm({ onSuccess }: { onSuccess?: () => void }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: z.infer<typeof eventInputSchema>) => {
     try {
-      // Convert date to ISO string
-      if (data.date) {
-        data.date = new Date(data.date).toISOString();
-      }
+      if (data.date) data.date = new Date(data.date).toISOString();
 
-      // Préparer FormData si un fichier banner est uploadé
       const formData = new FormData();
-      for (const key in data) {
+      for (const key of Object.keys(data) as (keyof typeof data)[]) {
         if (key === "banner" && data.banner?.length > 0) {
           formData.append("banner", data.banner[0]);
         } else {
-          formData.append(key, data[key]);
+          const value = data[key];
+          if (value !== undefined && value !== null) {
+            formData.append(key, String(value));
+          }
         }
       }
+
 
       await api.post("/events/manage/", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
       onSuccess?.();
-    } catch (err: any) {
-      // gérer l'erreur ici
+    } catch (err) {
       console.error(err);
     }
   };
@@ -111,7 +106,7 @@ export default function EventForm({ onSuccess }: { onSuccess?: () => void }) {
         className="space-y-4 bg-white p-6 rounded shadow"
         encType="multipart/form-data"
       >
-        {/* Artist */}
+        {/* Artiste */}
         <div>
           <label className="block text-sm font-medium mb-1">Artiste</label>
           <div className="flex gap-2 items-center">
@@ -120,7 +115,7 @@ export default function EventForm({ onSuccess }: { onSuccess?: () => void }) {
                 className="input cursor-pointer h-10 flex items-center px-3 border rounded"
                 onClick={() => setShowDropdown((prev) => !prev)}
               >
-                {selectedArtist ? selectedArtist.name : "Sélectionner un artiste..."}
+                {selectedArtist?.name ?? "Sélectionner un artiste..."}
               </div>
 
               {showDropdown && (
@@ -162,7 +157,9 @@ export default function EventForm({ onSuccess }: { onSuccess?: () => void }) {
                 </div>
               )}
               <input type="hidden" {...register("artist_id")} />
-              <p className="text-sm text-red-500 mt-1">{errors.artist_id?.message}</p>
+              {errors.artist_id && (
+                <p className="text-sm text-red-500 mt-1">{errors.artist_id.message}</p>
+              )}
             </div>
 
             <button
@@ -178,11 +175,8 @@ export default function EventForm({ onSuccess }: { onSuccess?: () => void }) {
         {/* Titre */}
         <div>
           <label>Titre</label>
-          <input
-            {...register("title")}
-            className="input border rounded px-3 py-2 w-full"
-          />
-          <p className="text-sm text-red-500">{errors.title?.message}</p>
+          <input {...register("title")} className="input border rounded px-3 py-2 w-full" />
+          {errors.title && <p className="text-sm text-red-500">{errors.title.message}</p>}
         </div>
 
         {/* Date */}
@@ -193,16 +187,13 @@ export default function EventForm({ onSuccess }: { onSuccess?: () => void }) {
             {...register("date")}
             className="input border rounded px-3 py-2 w-full"
           />
-          <p className="text-sm text-red-500">{errors.date?.message}</p>
+          {errors.date && <p className="text-sm text-red-500">{errors.date.message}</p>}
         </div>
 
         {/* Description */}
         <div>
           <label>Description</label>
-          <textarea
-            {...register("description")}
-            className="input border rounded px-3 py-2 w-full"
-          />
+          <textarea {...register("description")} className="input border rounded px-3 py-2 w-full" />
         </div>
 
         {/* Lieu */}
@@ -216,7 +207,7 @@ export default function EventForm({ onSuccess }: { onSuccess?: () => void }) {
             }}
           />
           <input type="hidden" {...register("location")} />
-          <p className="text-sm text-red-500">{errors.location?.message}</p>
+          {errors.location && <p className="text-sm text-red-500">{errors.location.message}</p>}
         </div>
 
         {/* Banner upload optionnel */}
@@ -228,13 +219,9 @@ export default function EventForm({ onSuccess }: { onSuccess?: () => void }) {
             {...register("banner")}
             className="input border rounded px-3 py-2 w-full"
           />
-          <p className="text-sm text-red-500">{typeof errors.title?.message === "string" ? errors.title.message : null}</p>
         </div>
 
-        <button
-          type="submit"
-          className="btn-primary px-6 py-2 rounded mt-4"
-        >
+        <button type="submit" className="btn-primary px-6 py-2 rounded mt-4">
           Créer
         </button>
       </form>
